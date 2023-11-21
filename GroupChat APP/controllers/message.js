@@ -1,4 +1,4 @@
-const sequelize = require('../utils/database');
+const {Op } = require('../utils/database');
 const Message = require("../models/message");
 const User = require("../models/user");
 
@@ -27,21 +27,31 @@ const postMessage = async (req, res) => {
 
 const getMessages = async (req, res) => {
     try {
-        const messages = await Message.findAll({
+        
+        const lastMessageId = req.query.lastMessageid ? parseInt(req.query.lastMessageid, 10) : 0;
+
+       
+        const newMessages = await Message.findAll({
+            where: {
+                id: { [Op.gt]: lastMessageId } 
+            },
             include: [{
                 model: User,
-                attributes: ['name'], 
+                attributes: ['name'],
             }],
         });
 
-        res.status(200).json({ messages });
+        
+        res.status(200).json({ messages: newMessages });
     } catch (error) {
         console.error('Error getting messages:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
+
 module.exports = {
     postMessage,
     getMessages
 };
+

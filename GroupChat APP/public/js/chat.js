@@ -1,12 +1,37 @@
 const sendBtn = document.getElementById('send-button') ;  
         
-document.addEventListener('DOMContentLoaded', function() {
-    // Fetch users using Axios when the DOM has loaded
+  
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        setInterval(async () => {
+            const oldMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+        
+        
+            const lastMessageId = oldMessages.length > 0 ? oldMessages[oldMessages.length - 1].id : 0;
+        
+            try {
+                
+                const response = await axios.get(`/message/getMessages?lastMessageid=${lastMessageId}`);
+                const newMessages = response.data;
+        
+               
+                const mergedMessages = [...oldMessages, ...newMessages];
+        
+            
+                localStorage.setItem('chatMessages', JSON.stringify(mergedMessages));
+        
+                displayTextMessage(mergedMessages);
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+         } , 1000) 
+     
+       
+    });
     
-    setInterval(async () => {
-           displayTextMessage()
-        } , 1000)     
-});
+     
 
 async function sendMessage() {
     try{
