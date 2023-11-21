@@ -1,6 +1,8 @@
 const express = require("express");
 const sequelize = require("./utils/database");
-const cors = require("cors");
+app.use(cors({
+    origin:"http://127.0.0.1:5500"
+}));
 
 const userRoute = require("./routes/user");
 const mainRoute = require("./routes/main")
