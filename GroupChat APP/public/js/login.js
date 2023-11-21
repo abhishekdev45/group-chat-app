@@ -15,7 +15,7 @@ async function login(e) {
 
     const response = await axios.post('http://localhost:3000/user/login', loginDetails)
         localStorage.setItem('token' , response.data.token)
-        // window.location.href = '/expense_tracker'
+        window.location.href = '/chat_page';
 
     }catch(err){
         displayMessage('login-error-container' , err.response.data.message , false)
