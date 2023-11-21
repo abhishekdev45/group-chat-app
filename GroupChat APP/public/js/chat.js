@@ -1,36 +1,47 @@
 const sendBtn = document.getElementById('send-button') ;  
         
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Fetch users using Axios when the DOM has loaded
-    axios.get('/user/getUsers')
-        .then(function(response) {
-            
-            var chatContainer = document.getElementById('chat-container');
-            response.data.forEach(function(user) {
-                var listItem = document.createElement('li');
-                listItem.textContent = user.name + 'joined'; 
-                chatContainer.appendChild(listItem);
-            });
-        })
-        .catch(function(error) {
-            console.error('Error fetching users:', error);
-        });
+    try{
+       const response = await axios.get('/message/getMessages')
+       response.data.messages.forEach((item) => {
+        console.log(item)
+        displayTextMessage(item);
+      });
+    }catch(err){
+        console.error('Error fetching users:', err);
+    }
+
+
+
 });
 
-function sendMessage() {
-    var messageInput = document.getElementById('message-input');
-    var chatContainer = document.getElementById('chat-container');
+async function sendMessage() {
+    try{
+        var messageInput = document.getElementById('message-input');
+        
+        const token = localStorage.getItem('token');
 
-    var message = messageInput.value;
+        var message = messageInput.value;
+        
+        const response = await axios.post('/message/postMessage' ,{text:message}, {headers: {"Authorization" : token}});
+        
+        displayTextMessage({text:response.data.message.text, User : {name:response.data.name.name}});
+        
+        messageInput.value = '';
+    
+    }catch(err){
+        console.log(err);
+    }
 
-    var listItem = document.createElement('li');
-    listItem.textContent = message;
-
-    chatContainer.appendChild(listItem);
-
-    messageInput.value = '';
-
-    listItem.scrollIntoView();
 }
 
 sendBtn.addEventListener('click' , sendMessage);
+
+function displayTextMessage(message){
+    var chatContainer = document.getElementById('chat-container');
+    var listItem = document.createElement('li');
+    listItem.textContent = `${message.User.name}-${message.text}`;
+    chatContainer.appendChild(listItem);
+    listItem.scrollIntoView();
+}
