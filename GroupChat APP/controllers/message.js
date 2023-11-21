@@ -1,4 +1,4 @@
-const {Op } = require('../utils/database');
+const {Op} = require('sequelize');
 const Message = require("../models/message");
 const User = require("../models/user");
 
@@ -14,11 +14,9 @@ const postMessage = async (req, res) => {
             UserId: userId,
         });
 
-        const name = await User.findOne({
-            where : {id : userId}
-        })
+     
 
-        res.status(201).json({ message , name });
+        res.status(201).json({ message  });
     } catch (error) {
         console.error('Error posting message:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -28,7 +26,7 @@ const postMessage = async (req, res) => {
 const getMessages = async (req, res) => {
     try {
         
-        const lastMessageId = req.query.lastMessageid ? parseInt(req.query.lastMessageid, 10) : 0;
+        const lastMessageId = req.query.lastMessageId ? parseInt(req.query.lastMessageId, 10) : 0;
 
        
         const newMessages = await Message.findAll({

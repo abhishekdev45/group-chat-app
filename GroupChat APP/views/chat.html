@@ -7,12 +7,19 @@
 </head>
 <body>
     <h1 style="text-align: center;">ChatApp</h1>
-
+    <div class="main-container"></div>
+    <button id ="create-button">create new group</button>
+    
+    <div class="showGroups">
+        <ul id="group-container"></ul>
+    </div>
     <ul id="chat-container"></ul>
 
     <div>
         <input type="text" id="message-input" placeholder="Type your message">
         <button id="send-button" >Send</button>
+    </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
