@@ -1,39 +1,70 @@
-const express = require("express");
-const sequelize = require("./utils/database");
-const cors = require("cors");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const { instrument } = require('@socket.io/admin-ui');
 
-const userRoute = require("./routes/user");
-const mainRoute = require("./routes/main");
-const messageRoute = require('./routes/message');
-const groupRoute = require('./routes/group');
+const express = require('express');
+require('dotenv').config();
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
-const User = require("./models/user");
-const Message = require("./models/message");
-const Group = require('./models/group');
-const UserGroup = require('./models/usergroup');
+const sequelize = require('./util/database');
+const User = require('./models/users');
+const Forgotpasswords = require('./models/forgot-password');
+const ChatHistory = require('./models/chat-history');
+const Groups = require("./models/groups");
+const GroupMember = require('./models/group-members');
 
+const websocketService = require('./services/websocket');
+const cronService = require('./services/cron');
+cronService.job.start();
+
+const maninRoute = require('./routes/home');
+const userRoute = require('./routes/user');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods:['GET','POST'],
 
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
+app.use(cookieParser());
 
-app.use("/user",userRoute);
-app.use("/message",messageRoute);
-app.use("/group",groupRoute);
-app.use("/", mainRoute);
+app.use('/user',userRoute)
+app.use(maninRoute)
 
-User.hasMany(Message);
-Message.belongsTo(User);
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io",],
+    credentials: true
+  }
+});
+io.on('connection', websocketService )
 
-User.belongsToMany(Group, { through: UserGroup });
-Group.belongsToMany(User, { through: UserGroup });
+instrument(io, { auth: false })
 
-sequelize.sync().then((result)=>{
-    
-    app.listen(3000);
-}).catch(e=>{
-    console.log(e);
-})
+User.hasMany(Forgotpasswords);
+Forgotpasswords.belongsTo(User,{constraints:true,onDelete:'CASCADE'});
+User.hasMany(ChatHistory)
+ChatHistory.belongsTo(User, { constraints: true });
+User.belongsToMany(Groups, { through: GroupMember });
+Groups.belongsToMany(User, { through: GroupMember });
+Groups.belongsTo(User,{foreignKey: 'AdminId',constraints:true,onDelete:'CASCADE'})
+Groups.hasMany(ChatHistory);
+ChatHistory.belongsTo(Groups);
+
+const PORT = process.env.PORT;
+async function initiate() {
+    try {
+     const res = await sequelize.sync();
+      httpServer.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT} `);
+      })
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  initiate();
